@@ -51,8 +51,11 @@ pub trait Module:
     type Ring: RingCommutative;
 }
 
-// FIXME: unfortunately, Module cannot be auto-impl-ed.
-impl<N: RingCommutative + num::NumAssign> Module for num_complex::Complex<N> {
+impl<N, T> Module for T
+where
+    N: num::NumAssign + ClosedNeg,
+    T: crate::general::ComplexField<RealField = N>,
+{
     type Ring = N;
 }
 
@@ -64,4 +67,4 @@ macro_rules! impl_module(
     }
 );
 
-impl_module!(i8, i16, i32, i64, isize, f32, f64);
+impl_module!(i8, i16, i32, i64, isize);

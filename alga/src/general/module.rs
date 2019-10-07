@@ -32,14 +32,11 @@ pub trait AbstractModule<
     fn multiply_by(&self, r: Self::AbstractRing) -> Self;
 }
 
-impl<
-        N: AbstractRingCommutative<Additive, Multiplicative> + num::Num + crate::general::ClosedNeg,
-    > AbstractModule<Additive, Additive, Multiplicative> for num_complex::Complex<N>
-{
-    type AbstractRing = N;
+impl<T: crate::general::ComplexField> AbstractModule for T {
+    type AbstractRing = T::RealField;
 
     #[inline]
-    fn multiply_by(&self, r: N) -> Self {
+    fn multiply_by(&self, r: T::RealField) -> Self {
         self.clone() * r
     }
 }
@@ -57,5 +54,5 @@ macro_rules! impl_abstract_module(
     }
 );
 
-impl_abstract_module!(i8, i16, i32, i64, isize, f32, f64);
+impl_abstract_module!(i8, i16, i32, i64, isize);
 

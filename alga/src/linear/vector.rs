@@ -1,5 +1,4 @@
 use num;
-use num_complex::Complex;
 
 use std::ops::{
     Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
@@ -223,16 +222,13 @@ pub trait EuclideanSpace: AffineSpace<Translation = <Self as EuclideanSpace>::Co
     }
 }
 
-macro_rules! impl_vec_space(
-    ($($T:ty),*) => {
-        $(
-impl VectorSpace for $T{
-    type Field = $T;
+impl<T: ComplexField> VectorSpace for T {
+    type Field = T;
 }
 
-impl NormedSpace for $T{
-    type RealField = $T;
-    type ComplexField = $T;
+impl<T: ComplexField> NormedSpace for T {
+    type RealField = T::RealField;
+    type ComplexField = T;
 
     #[inline]
     fn norm_squared(&self) -> Self::RealField {
@@ -246,13 +242,13 @@ impl NormedSpace for $T{
 
     #[inline]
     fn normalize(&self) -> Self {
-        *self / self.modulus()
+        *self / ComplexField::from_real(self.modulus())
     }
 
     #[inline]
     fn normalize_mut(&mut self) -> Self::RealField {
         let norm = self.modulus();
-        *self /= norm;
+        *self /= ComplexField::from_real(norm);
         norm
     }
 
@@ -260,7 +256,7 @@ impl NormedSpace for $T{
     fn try_normalize(&self, eps: Self::RealField) -> Option<Self> {
         let norm = self.modulus_squared();
         if norm > eps * eps {
-            Some(*self / self.modulus())
+            Some(*self / ComplexField::from_real(self.modulus()))
         } else {
             None
         }
@@ -271,66 +267,7 @@ impl NormedSpace for $T{
         let sq_norm = self.modulus_squared();
         if sq_norm > eps * eps {
             let norm = self.modulus();
-            *self /= norm;
-            Some(norm)
-        } else {
-            None
-        }
-    }
-
-}
-        )*
-    }
-);
-
-impl_vec_space!(f32, f64);
-
-impl<N: Field + num::NumAssign> VectorSpace for Complex<N> {
-    type Field = N;
-}
-
-impl<N: RealField> NormedSpace for Complex<N> {
-    type RealField = N;
-    type ComplexField = N;
-
-    #[inline]
-    fn norm_squared(&self) -> Self::RealField {
-        self.norm_sqr()
-    }
-
-    #[inline]
-    fn norm(&self) -> Self::RealField {
-        self.norm_sqr().sqrt()
-    }
-
-    #[inline]
-    fn normalize(&self) -> Self {
-        *self / self.norm()
-    }
-
-    #[inline]
-    fn normalize_mut(&mut self) -> Self::RealField {
-        let norm = self.norm();
-        *self /= norm;
-        norm
-    }
-
-    #[inline]
-    fn try_normalize(&self, eps: Self::RealField) -> Option<Self> {
-        let norm = self.norm_sqr();
-        if norm > eps * eps {
-            Some(*self / norm.sqrt())
-        } else {
-            None
-        }
-    }
-
-    #[inline]
-    fn try_normalize_mut(&mut self, eps: Self::RealField) -> Option<Self::RealField> {
-        let sq_norm = self.norm_sqr();
-        if sq_norm > eps * eps {
-            let norm = sq_norm.sqrt();
-            *self /= norm;
+            *self /= ComplexField::from_real(norm);
             Some(norm)
         } else {
             None
